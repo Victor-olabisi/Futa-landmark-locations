@@ -5,10 +5,10 @@ const Hero = () => {
     <div className="py-10">
       <div className=" ">
         <h2 className="text-2xl mb-4 font-bold">
-          Explore FUTA’s Landmarks with Interactive GIS Mapping
+          Explore FUTA Landmarks with Interactive GIS Mapping
         </h2>
         <p className="max-w-[40rem]">
-          Welcome to FUTA’s interactive map. Navigate the campus and discover
+          Welcome to FUTA interactive map. Navigate the campus and discover
           key landmarks with ease. This GIS platform offers detailed information
           on important locations, helping you find your way around effortlessly.
         </p>
