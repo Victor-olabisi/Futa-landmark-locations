@@ -75,6 +75,11 @@ const MapComponent = () => {
     setSearchResults(results);
   };
 
+   const polygonStyle = {
+     color: "none", // No border color
+     fillOpacity: 0, // No fill
+   };
+
   const SearchResults = () => {
     const map = useMap();
 
@@ -115,7 +120,7 @@ const MapComponent = () => {
       />
       <MapContainer
         center={[7.3066, 5.1376]}
-        zoom={15}
+        zoom={30}
         style={{ height: "65vh", width: "100%" }}
         className="rounded-xl"
       >
@@ -124,7 +129,9 @@ const MapComponent = () => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         {amenityPoints && <GeoJSON data={amenityPoints} />}
-        {amenityPolygons && <GeoJSON data={amenityPolygons} />}
+        {amenityPolygons && (
+          <GeoJSON data={amenityPolygons} style={polygonStyle} />
+        )}
         {buildings && <GeoJSON data={buildings} />}
         <SearchResults />
       </MapContainer>
