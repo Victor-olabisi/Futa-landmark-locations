@@ -11,7 +11,7 @@ const categories = [
 
 const About = () => {
   return (
-    <section className="">
+    <section className="py-10">
       <div className="grid md:grid-cols-3 gap-8 ">
         <div className="col-span-2">
           <img src={AboutImg} alt="" className="rounded-xl mb-6" />
