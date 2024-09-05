@@ -5,7 +5,7 @@ const Homelayout = () => {
   return (
       <section>
           <Navbar />
-          <div className="max-w-[900px] mx-auto px-6">
+          <div className="max-w-[1200px] mx-auto px-6">
           <Outlet/>
           </div> 
     </section>

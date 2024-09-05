@@ -13,6 +13,9 @@ const MapComponent = () => {
   const [amenityPoints, setAmenityPoints] = useState(null);
   const [amenityPolygons, setAmenityPolygons] = useState(null);
   const [buildings, setBuildings] = useState(null);
+  const [roads, setRoads] = useState(null);
+  const [landcover, setLandcover] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState(""); // State for search input
   const [searchResults, setSearchResults] = useState([]); // State for search results
 
@@ -33,6 +36,16 @@ const MapComponent = () => {
       .then((response) => response.json())
       .then((data) => setBuildings(data))
       .catch((error) => console.error("Error loading buildings:", error));
+
+    fetch("/geoJsondata/roads.geojson")
+      .then((response) => response.json())
+      .then((data) => setRoads(data))
+      .catch((error) => console.error("Error loading roads:", error));
+
+    fetch("/geoJsondata/landcover.geojson")
+      .then((response) => response.json())
+      .then((data) => setLandcover(data))
+      .catch((error) => console.error("Error loading landcover:", error));
   }, []);
 
   // Handle search
@@ -87,6 +100,21 @@ const MapComponent = () => {
     fillOpacity: 0, // No fill
   };
 
+  // A function to calculate the center of a polygon (for placing the marker on polygons)
+  const getPolygonCenter = (coordinates) => {
+    let totalLat = 0;
+    let totalLng = 0;
+    let count = 0;
+
+    coordinates[0].forEach((coord) => {
+      totalLat += coord[1];
+      totalLng += coord[0];
+      count++;
+    });
+
+    return [totalLat / count, totalLng / count];
+  };
+
   const SearchResults = () => {
     const map = useMap();
 
@@ -95,12 +123,13 @@ const MapComponent = () => {
         const firstResult = searchResults[0];
         const coordinates = firstResult.geometry.coordinates;
 
-        // For Polygon and MultiPolygon geometry types, use the first coordinate
+        // For Polygon and MultiPolygon geometry types, fly to the first result
         if (
           firstResult.geometry.type === "Polygon" ||
           firstResult.geometry.type === "MultiPolygon"
         ) {
-          map.flyTo([coordinates[0][0][1], coordinates[0][0][0]], 18);
+          const center = getPolygonCenter(coordinates);
+          map.flyTo(center, 18);
         } else {
           map.flyTo([coordinates[1], coordinates[0]], 18);
         }
@@ -135,29 +164,47 @@ const MapComponent = () => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {/* Show amenity points but they will not be displayed until search */}
-        {amenityPoints && <GeoJSON data={amenityPoints} />}
-        {/* Polygons can still be shown, but markers only on search */}
-        {amenityPolygons && (
+
+        {/* Polygons (not affected by search) */}
+        {/* {amenityPolygons && (
           <GeoJSON data={amenityPolygons} style={polygonStyle} />
-        )}
+        )} */}
+
         {buildings && <GeoJSON data={buildings} />}
 
         {/* Show markers only for the search results */}
         {searchResults.length > 0 &&
-          searchResults.map((result, index) =>
-            result.geometry.type === "Point" ? (
-              <Marker
-                key={index}
-                position={[
-                  result.geometry.coordinates[1],
-                  result.geometry.coordinates[0],
-                ]}
-              >
-                <Popup>{result.properties.name}</Popup>
-              </Marker>
-            ) : null
-          )}
+          searchResults.map((result, index) => {
+            if (result.geometry.type === "Point") {
+              // For Point geometry
+              return (
+                <Marker
+                  key={index}
+                  position={[
+                    result.geometry.coordinates[1],
+                    result.geometry.coordinates[0],
+                  ]}
+                >
+                  <Popup>{result.properties.name}</Popup>
+                </Marker>
+              );
+            } else if (
+              result.geometry.type === "Polygon" ||
+              result.geometry.type === "MultiPolygon"
+            ) {
+              // For Polygon or MultiPolygon, use the center for marker
+              const center = getPolygonCenter(result.geometry.coordinates);
+              return (
+                <Marker key={index} position={center}>
+                  <Popup>{result.properties.name}</Popup>
+                </Marker>
+              );
+            } else {
+              return null;
+            }
+          })}
+
+        {/* Focus on search result */}
         <SearchResults />
       </MapContainer>
     </div>

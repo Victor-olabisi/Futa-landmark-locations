@@ -20,7 +20,7 @@ const navLinks = [
 const Navbar = () => {
   return (
     <div>
-      <div className="flex justify-between items-center max-w-[900px] mx-auto px-6">
+      <div className="flex justify-between items-center max-w-[1200px] mx-auto px-6">
         <img src={futaLogo} alt="" className="h-[4rem] w-[4rem] " />
         <h3 className="text-lg font-semibold">welcome back</h3>
         <div className="social-links flex gap-x-3">
