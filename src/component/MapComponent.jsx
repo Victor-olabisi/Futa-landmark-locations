@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  GeoJSON,
+  Marker,
+  Popup,
+  useMap,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 const MapComponent = () => {
@@ -75,10 +82,10 @@ const MapComponent = () => {
     setSearchResults(results);
   };
 
-   const polygonStyle = {
-     color: "none", // No border color
-     fillOpacity: 0, // No fill
-   };
+  const polygonStyle = {
+    color: "none", // No border color
+    fillOpacity: 0, // No fill
+  };
 
   const SearchResults = () => {
     const map = useMap();
@@ -120,7 +127,7 @@ const MapComponent = () => {
       />
       <MapContainer
         center={[7.3066, 5.1376]}
-        zoom={30}
+        zoom={15}
         style={{ height: "65vh", width: "100%" }}
         className="rounded-xl"
       >
@@ -128,11 +135,29 @@ const MapComponent = () => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
+        {/* Show amenity points but they will not be displayed until search */}
         {amenityPoints && <GeoJSON data={amenityPoints} />}
+        {/* Polygons can still be shown, but markers only on search */}
         {amenityPolygons && (
           <GeoJSON data={amenityPolygons} style={polygonStyle} />
         )}
         {buildings && <GeoJSON data={buildings} />}
+
+        {/* Show markers only for the search results */}
+        {searchResults.length > 0 &&
+          searchResults.map((result, index) =>
+            result.geometry.type === "Point" ? (
+              <Marker
+                key={index}
+                position={[
+                  result.geometry.coordinates[1],
+                  result.geometry.coordinates[0],
+                ]}
+              >
+                <Popup>{result.properties.name}</Popup>
+              </Marker>
+            ) : null
+          )}
         <SearchResults />
       </MapContainer>
     </div>
