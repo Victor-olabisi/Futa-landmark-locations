@@ -7,7 +7,19 @@ import {
   Popup,
   useMap,
 } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+
+// Fix for default marker icon
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
 
 const MapComponent = () => {
   const [amenityPoints, setAmenityPoints] = useState(null);
@@ -50,16 +62,21 @@ const MapComponent = () => {
 
   // Handle search
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (value === "") {
+      setSearchResults([]);
+      return;
+    }
+
     const results = [];
 
     if (amenityPoints) {
       amenityPoints.features.forEach((feature) => {
         if (
           feature.properties.name &&
-          feature.properties.name
-            .toLowerCase()
-            .includes(e.target.value.toLowerCase())
+          feature.properties.name.toLowerCase().includes(value.toLowerCase())
         ) {
           results.push(feature);
         }
@@ -70,9 +87,7 @@ const MapComponent = () => {
       amenityPolygons.features.forEach((feature) => {
         if (
           feature.properties.name &&
-          feature.properties.name
-            .toLowerCase()
-            .includes(e.target.value.toLowerCase())
+          feature.properties.name.toLowerCase().includes(value.toLowerCase())
         ) {
           results.push(feature);
         }
@@ -83,9 +98,7 @@ const MapComponent = () => {
       buildings.features.forEach((feature) => {
         if (
           feature.properties.name &&
-          feature.properties.name
-            .toLowerCase()
-            .includes(e.target.value.toLowerCase())
+          feature.properties.name.toLowerCase().includes(value.toLowerCase())
         ) {
           results.push(feature);
         }
@@ -166,9 +179,9 @@ const MapComponent = () => {
         />
 
         {/* Polygons (not affected by search) */}
-        {/* {amenityPolygons && (
+        {amenityPolygons && (
           <GeoJSON data={amenityPolygons} style={polygonStyle} />
-        )} */}
+        )}
 
         {buildings && <GeoJSON data={buildings} />}
 
