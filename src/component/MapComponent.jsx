@@ -108,9 +108,11 @@ const MapComponent = () => {
     setSearchResults(results);
   };
 
-  const polygonStyle = {
-    color: "none", // No border color
-    fillOpacity: 0, // No fill
+  // Define custom styles to remove fill and set transparent background for polygons
+  const transparentPolygonStyle = {
+    color: "#fff", // Optional border color, set to black
+    weight: 1, // Border thickness
+    fillOpacity: 0, // Make fill transparent
   };
 
   // A function to calculate the center of a polygon (for placing the marker on polygons)
@@ -178,12 +180,15 @@ const MapComponent = () => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
 
-        {/* Polygons (not affected by search) */}
+        {/* Polygons with transparent style */}
         {amenityPolygons && (
-          <GeoJSON data={amenityPolygons} style={polygonStyle} />
+          <GeoJSON data={amenityPolygons} style={transparentPolygonStyle} />
         )}
 
-        {buildings && <GeoJSON data={buildings} />}
+        {/* Buildings with transparent style */}
+        {buildings && (
+          <GeoJSON data={buildings} style={transparentPolygonStyle} />
+        )}
 
         {/* Show markers only for the search results */}
         {searchResults.length > 0 &&
