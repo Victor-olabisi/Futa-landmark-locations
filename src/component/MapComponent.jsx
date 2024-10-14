@@ -14,11 +14,9 @@ import "leaflet/dist/leaflet.css";
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+    "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
 
 const MapComponent = () => {
@@ -60,59 +58,44 @@ const MapComponent = () => {
       .catch((error) => console.error("Error loading landcover:", error));
   }, []);
 
+  // Normalize a string by trimming and converting to lowercase
+  const normalizeString = (str) => str.trim().toLowerCase().replace(/\s+/g, "");
+
   // Handle search
   const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
+    const originalValue = e.target.value; // Keep the original value (with spaces and capitals)
+    setSearchTerm(originalValue); // Set the original value for display
 
-    if (value === "") {
+    const normalizedValue = normalizeString(originalValue); // Normalize for comparison
+
+    if (normalizedValue === "") {
       setSearchResults([]);
       return;
     }
 
     const results = [];
 
-    if (amenityPoints) {
-      amenityPoints.features.forEach((feature) => {
+    const searchInFeatures = (features) => {
+      features.forEach((feature) => {
         if (
           feature.properties.name &&
-          feature.properties.name.toLowerCase().includes(value.toLowerCase())
+          normalizeString(feature.properties.name).includes(normalizedValue)
         ) {
           results.push(feature);
         }
       });
-    }
+    };
 
-    if (amenityPolygons) {
-      amenityPolygons.features.forEach((feature) => {
-        if (
-          feature.properties.name &&
-          feature.properties.name.toLowerCase().includes(value.toLowerCase())
-        ) {
-          results.push(feature);
-        }
-      });
-    }
-
-    if (buildings) {
-      buildings.features.forEach((feature) => {
-        if (
-          feature.properties.name &&
-          feature.properties.name.toLowerCase().includes(value.toLowerCase())
-        ) {
-          results.push(feature);
-        }
-      });
-    }
+    if (amenityPoints) searchInFeatures(amenityPoints.features);
+    if (amenityPolygons) searchInFeatures(amenityPolygons.features);
+    if (buildings) searchInFeatures(buildings.features);
 
     setSearchResults(results);
   };
 
-  // Define custom styles to remove fill and set transparent background for polygons
-  const transparentPolygonStyle = {
-    color: "#fff", // Optional border color, set to black
-    weight: 1, // Border thickness
-    fillOpacity: 0, // Make fill transparent
+  const polygonStyle = {
+    color: "none", // No border color
+    fillOpacity: 0, // No fill
   };
 
   // A function to calculate the center of a polygon (for placing the marker on polygons)
@@ -182,13 +165,13 @@ const MapComponent = () => {
 
         {/* Polygons with transparent style */}
         {amenityPolygons && (
-          <GeoJSON data={amenityPolygons} style={transparentPolygonStyle} />
+          <GeoJSON data={amenityPolygons} style={polygonStyle} />
         )}
 
+        {/* {amenityPoints && <GeoJSON data={amenityPoints} style={polygonStyle} />} */}
+
         {/* Buildings with transparent style */}
-        {buildings && (
-          <GeoJSON data={buildings} style={transparentPolygonStyle} />
-        )}
+        {buildings && <GeoJSON data={buildings} style={polygonStyle} />}
 
         {/* Show markers only for the search results */}
         {searchResults.length > 0 &&
@@ -203,7 +186,33 @@ const MapComponent = () => {
                     result.geometry.coordinates[0],
                   ]}
                 >
-                  <Popup>{result.properties.name}</Popup>
+                  <Popup>
+                    <strong>{result.properties.name}</strong>
+                    <br />
+                    {result.properties.amenity && (
+                      <span>Amenity: {result.properties.amenity}</span>
+                    )}
+                    <br />
+                    {result.properties.operator && (
+                      <span>Operator: {result.properties.operator}</span>
+                    )}
+                    <br />
+                    {result.properties.opening_hours && (
+                      <span>
+                        Opening Hours: {result.properties.opening_hours}
+                      </span>
+                    )}
+                    <br />
+                    {result.properties.wheelchair && (
+                      <span>
+                        Wheelchair Accessible: {result.properties.wheelchair}
+                      </span>
+                    )}
+                    <br />
+                    {result.properties.description && (
+                      <span>Description: {result.properties.description}</span>
+                    )}
+                  </Popup>
                 </Marker>
               );
             } else if (
@@ -214,7 +223,33 @@ const MapComponent = () => {
               const center = getPolygonCenter(result.geometry.coordinates);
               return (
                 <Marker key={index} position={center}>
-                  <Popup>{result.properties.name}</Popup>
+                  <Popup>
+                    <strong>{result.properties.name}</strong>
+                    <br />
+                    {result.properties.building && (
+                      <span>Building Type: {result.properties.building}</span>
+                    )}
+                    <br />
+                    {result.properties.height && (
+                      <span>Height: {result.properties.height}</span>
+                    )}
+                    <br />
+                    {result.properties["building:levels"] && (
+                      <span>
+                        Levels: {result.properties["building:levels"]}
+                      </span>
+                    )}
+                    <br />
+                    {result.properties.wheelchair && (
+                      <span>
+                        Wheelchair Accessible: {result.properties.wheelchair}
+                      </span>
+                    )}
+                    <br />
+                    {result.properties.description && (
+                      <span>Description: {result.properties.description}</span>
+                    )}
+                  </Popup>
                 </Marker>
               );
             } else {
